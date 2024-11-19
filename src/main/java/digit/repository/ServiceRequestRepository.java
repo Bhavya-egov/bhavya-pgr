@@ -41,6 +41,7 @@ public class ServiceRequestRepository {
         }catch(Exception e) {
             log.error(SEARCHER_SERVICE_EXCEPTION,e);
         }
+        System.out.println(response);
 
         return response;
     }

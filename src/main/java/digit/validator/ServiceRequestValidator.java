@@ -1,9 +1,8 @@
 package digit.validator;
 
 import digit.config.PGRConfiguration;
-import digit.web.models.RequestHeader;
-import digit.web.models.ServiceRequest;
-import digit.web.models.UserInfo;
+import digit.repository.PGRRepository;
+import digit.web.models.*;
 import jakarta.validation.Valid;
 //import org.egov.pgr.config.PGRConfiguration;
 //import org.egov.pgr.repository.PGRRepository;
@@ -14,6 +13,7 @@ import org.egov.common.contract.request.User;
 import org.egov.tracer.model.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 
@@ -27,13 +27,14 @@ public class ServiceRequestValidator {
 
     private PGRConfiguration config;
 
-//    private PGRRepository repository;
+    private PGRRepository repository;
 
 //    private HRMSUtil hrmsUtil;
 
     @Autowired
-    public ServiceRequestValidator(PGRConfiguration config) {
+    public ServiceRequestValidator(PGRConfiguration config,PGRRepository repository) {
         this.config = config;
+        this.repository = repository;
 
     }
 
@@ -45,8 +46,8 @@ public class ServiceRequestValidator {
      */
     public void validateCreate(ServiceRequest request){
         Map<String,String> errorMap = new HashMap<>();
-        validateUserData(request,errorMap);
-        validateSource(request.getService().getSource());
+//        validateUserData(request,errorMap);
+//        validateSource(request.getPgrEntity().getService().getSource());
 //        validateMDMS(request, mdmsData);
 //        validateDepartment(request, mdmsData);
         if(!errorMap.isEmpty())
@@ -59,24 +60,24 @@ public class ServiceRequestValidator {
      * @param request The request to update complaint
      * @param mdmsData The master data for pgr
      */
-//    public void validateUpdate(ServiceRequest request, Object mdmsData){
-//
-//        String id = request.getService().getId();
-//        String tenantId = request.getService().getTenantId();
-//        validateSource(request.getService().getSource());
+    public void validateUpdate(ServiceRequest request){
+
+        String id = request.getPgrEntity().getService().getId();
+        String tenantId = request.getPgrEntity().getService().getTenantId();
+        validateSource(request.getPgrEntity().getService().getSource());
 //        validateMDMS(request, mdmsData);
 //        validateDepartment(request, mdmsData);
 //        validateReOpen(request);
-//        RequestSearchCriteria criteria = RequestSearchCriteria.builder().ids(Collections.singleton(id)).tenantId(tenantId).build();
-//        criteria.setIsPlainSearch(false);
-//        List<ServiceWrapper> serviceWrappers = repository.getServiceWrappers(criteria);
-//
-//        if(CollectionUtils.isEmpty(serviceWrappers))
-//            throw new CustomException("INVALID_UPDATE","The record that you are trying to update does not exists");
-//
-//        // TO DO
-//
-//    }
+        RequestSearchCriteria criteria = RequestSearchCriteria.builder().ids(Collections.singleton(id)).tenantId(tenantId).build();
+        criteria.setIsPlainSearch(false);
+        List<ServiceWrapper> serviceWrappers = repository.getServiceWrappers(criteria);
+
+        if(CollectionUtils.isEmpty(serviceWrappers))
+            throw new CustomException("INVALID_UPDATE","The record that you are trying to update does not exists");
+
+        // TO DO
+
+    }
 
     /**
      * Validates the user related data in the complaint
@@ -86,10 +87,10 @@ public class ServiceRequestValidator {
     private void validateUserData(ServiceRequest request,Map<String, String> errorMap){
 
         RequestInfo requestInfo = request.getRequestInfo();
-        String accountId = request.getService().getAccountId();
+        String accountId = request.getPgrEntity().getService().getAccountId();
 
         if(requestInfo.getUserInfo().getType().equalsIgnoreCase(USERTYPE_EMPLOYEE)){
-            @Valid User citizen = request.getService().getCitizen();
+            @Valid User citizen = request.getPgrEntity().getService().getCitizen();
             if(citizen == null)
                 errorMap.put("INVALID_REQUEST","Citizen object cannot be null");
             else if(citizen.getMobileNumber()==null || citizen.getName()==null)
@@ -200,20 +201,20 @@ public class ServiceRequestValidator {
      *
      * @param criteria
      */
-//    public void validateSearch(RequestInfo requestInfo, RequestSearchCriteria criteria){
-//
-//        /*
-//         * Checks if tenatId is provided with the search params
-//         * */
-//        if( (criteria.getMobileNumber()!=null
-//                || criteria.getServiceRequestId()!=null || criteria.getIds()!=null
-//                || criteria.getServiceCode()!=null )
-//                && criteria.getTenantId()==null)
-//            throw new CustomException("INVALID_SEARCH","TenantId is mandatory search param");
-//
-//        validateSearchParam(requestInfo, criteria);
-//
-//    }
+    public void validateSearch(RequestInfo requestInfo, RequestSearchCriteria criteria){
+
+        /*
+         * Checks if tenatId is provided with the search params
+         * */
+        if( (criteria.getMobileNumber()!=null
+                || criteria.getServiceRequestId()!=null || criteria.getIds()!=null
+                || criteria.getServiceCode()!=null )
+                && criteria.getTenantId()==null)
+            throw new CustomException("INVALID_SEARCH","TenantId is mandatory search param");
+
+        validateSearchParam(requestInfo, criteria);
+
+    }
 
 
     /**
@@ -221,42 +222,42 @@ public class ServiceRequestValidator {
      * @param requestInfo
      * @param criteria
      */
-//    private void validateSearchParam(RequestInfo requestInfo, RequestSearchCriteria criteria){
-//
-//        if(requestInfo.getUserInfo().getType().equalsIgnoreCase("EMPLOYEE" ) && criteria.isEmpty())
-//            throw new CustomException("INVALID_SEARCH","Search without params is not allowed");
-//
-//        if(requestInfo.getUserInfo().getType().equalsIgnoreCase("EMPLOYEE") && criteria.getTenantId().split("\\.").length == config.getStateLevelTenantIdLength()){
-//            throw new CustomException("INVALID_SEARCH", "Employees cannot perform state level searches.");
-//        }
-//
-//        String allowedParamStr = null;
-//
-//        if(requestInfo.getUserInfo().getType().equalsIgnoreCase("CITIZEN" ))
-//            allowedParamStr = config.getAllowedCitizenSearchParameters();
-//        else if(requestInfo.getUserInfo().getType().equalsIgnoreCase("EMPLOYEE" ) || requestInfo.getUserInfo().getType().equalsIgnoreCase("SYSTEM") )
-//            allowedParamStr = config.getAllowedEmployeeSearchParameters();
-//        else throw new CustomException("INVALID SEARCH","The userType: "+requestInfo.getUserInfo().getType()+
-//                    " does not have any search config");
-//
-//        List<String> allowedParams = Arrays.asList(allowedParamStr.split(","));
-//
-//        if(criteria.getServiceCode()!=null && !allowedParams.contains("serviceCode"))
-//            throw new CustomException("INVALID SEARCH","Search on serviceCode is not allowed");
-//
-//        if(criteria.getServiceRequestId()!=null && !allowedParams.contains("serviceRequestId"))
-//            throw new CustomException("INVALID SEARCH","Search on serviceRequestId is not allowed");
-//
-//        if(criteria.getApplicationStatus()!=null && !allowedParams.contains("applicationStatus"))
-//            throw new CustomException("INVALID SEARCH","Search on applicationStatus is not allowed");
-//
-//        if(criteria.getMobileNumber()!=null && !allowedParams.contains("mobileNumber"))
-//            throw new CustomException("INVALID SEARCH","Search on mobileNumber is not allowed");
-//
-//        if(criteria.getIds()!=null && !allowedParams.contains("ids"))
-//            throw new CustomException("INVALID SEARCH","Search on ids is not allowed");
-//
-//    }
+    private void validateSearchParam(RequestInfo requestInfo, RequestSearchCriteria criteria){
+
+        if(requestInfo.getUserInfo().getType().equalsIgnoreCase("EMPLOYEE" ) && criteria.isEmpty())
+            throw new CustomException("INVALID_SEARCH","Search without params is not allowed");
+
+        if(requestInfo.getUserInfo().getType().equalsIgnoreCase("EMPLOYEE") && criteria.getTenantId().split("\\.").length == config.getStateLevelTenantIdLength()){
+            throw new CustomException("INVALID_SEARCH", "Employees cannot perform state level searches.");
+        }
+
+        String allowedParamStr = null;
+
+        if(requestInfo.getUserInfo().getType().equalsIgnoreCase("CITIZEN" ))
+            allowedParamStr = config.getAllowedCitizenSearchParameters();
+        else if(requestInfo.getUserInfo().getType().equalsIgnoreCase("EMPLOYEE" ) || requestInfo.getUserInfo().getType().equalsIgnoreCase("SYSTEM") )
+            allowedParamStr = config.getAllowedEmployeeSearchParameters();
+        else throw new CustomException("INVALID SEARCH","The userType: "+requestInfo.getUserInfo().getType()+
+                    " does not have any search config");
+
+        List<String> allowedParams = Arrays.asList(allowedParamStr.split(","));
+
+        if(criteria.getServiceCode()!=null && !allowedParams.contains("serviceCode"))
+            throw new CustomException("INVALID SEARCH","Search on serviceCode is not allowed");
+
+        if(criteria.getServiceRequestId()!=null && !allowedParams.contains("serviceRequestId"))
+            throw new CustomException("INVALID SEARCH","Search on serviceRequestId is not allowed");
+
+        if(criteria.getApplicationStatus()!=null && !allowedParams.contains("applicationStatus"))
+            throw new CustomException("INVALID SEARCH","Search on applicationStatus is not allowed");
+
+        if(criteria.getMobileNumber()!=null && !allowedParams.contains("mobileNumber"))
+            throw new CustomException("INVALID SEARCH","Search on mobileNumber is not allowed");
+
+        if(criteria.getIds()!=null && !allowedParams.contains("ids"))
+            throw new CustomException("INVALID SEARCH","Search on ids is not allowed");
+
+    }
 
     /**
      * Validates if the source is in the given list configures in application properties

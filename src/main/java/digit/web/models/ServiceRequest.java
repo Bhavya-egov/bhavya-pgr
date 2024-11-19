@@ -29,10 +29,12 @@ public class ServiceRequest {
     @Valid
     private RequestInfo requestInfo = null;
 
+    @JsonProperty("PGREntity")
+    @NotNull
     @Valid
-    @NonNull
-    @JsonProperty("service")
-    private Service service = null;
+    private ServiceWrapper pgrEntity = null;
+
+
 
 
 }

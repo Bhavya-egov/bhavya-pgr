@@ -9,6 +9,8 @@ public class ServiceConstants {
 
     public static final String USERTYPE_EMPLOYEE = "EMPLOYEE";
     public static final String USERTYPE_CITIZEN = "CITIZEN";
+    public static final String PGR_BUSINESSSERVICE = "PGR";
+    public static final String PGR_MODULENAME = "PGR";
 
     public static final String EXTERNAL_SERVICE_EXCEPTION = "External Service threw an Exception: ";
     public static final String SEARCHER_SERVICE_EXCEPTION = "Exception while fetching from searcher: ";

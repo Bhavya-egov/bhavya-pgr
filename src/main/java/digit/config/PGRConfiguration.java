@@ -59,8 +59,8 @@ public class PGRConfiguration {
     @Value("${egov.user.update.path}")
     private String userUpdateEndpoint;
 
-    @Value("${egov.internal.microservice.user.uuid}")
-    private String egovInternalMicroserviceUserUuid;
+//    @Value("${egov.internal.microservice.user.uuid}")
+//    private String egovInternalMicroserviceUserUuid;
 
     //Idgen Config
     @Value("${egov.idgen.host}")
@@ -76,8 +76,8 @@ public class PGRConfiguration {
     private String serviceRequestIdGenFormat;
 
     //Workflow Config
-    @Value("${pgr.business.codes}")
-    private List<String> businessServiceList;
+//    @Value("${pgr.business.codes}")
+//    private List<String> businessServiceList;
 
     @Value("${egov.workflow.host}")
     private String wfHost;
@@ -152,14 +152,11 @@ public class PGRConfiguration {
     @Value("${egov.localization.search.endpoint}")
     private String localizationSearchEndpoint;
 
-    @Value("${kafka.topics.notification.sms}")
-    private String smsNotifTopic;
+//    @Value("${kafka.topics.notification.sms}")
+//    private String smsNotifTopic;
 
-    @Value("${egov.usr.events.create.topic}")
-    private String saveUserEventsTopic;
-
-    @Value("${mseva.mobile.app.download.link}")
-    private String mobileDownloadLink;
+//    @Value("${egov.usr.events.create.topic}")
+//    private String saveUserEventsTopic;
 
     @Value("${egov.url.shortner.host}")
     private String urlShortnerHost;
